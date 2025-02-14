@@ -1,0 +1,82 @@
+<QuizScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: "20dp"
+        spacing: "20dp"
+
+        MDLabel:
+            id: value
+            text:
+            halign: "center"
+            font_style: "H5"
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: self.texture_size[1] + dp(5)  # Динамическая высота
+
+        # Заголовок вопроса (MDLabel)
+        MDLabel:
+            id: question_label
+            text:
+            halign: "center"
+            font_style: "H5"
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: self.texture_size[1] + dp(5)  # Динамическая высота
+
+
+        # Область с вариантами ответов
+        ScrollView:
+            size_hint: (1, 1)  # Занимает 80% высоты экрана
+            bar_width: dp(20)
+            effect_cls: "ScrollEffect"
+
+            GridLayout:
+                id: options
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height  # Автоподстройка высоты
+                spacing: "15dp"
+                padding: "10dp"
+        GridLayout:
+            id: y
+            cols: 1
+            size_hint_y: None
+            height: self.minimum_height  # Автоподстройка высоты
+            spacing: "15dp"
+            padding: "10dp"
+
+            MDLabel:
+                id: otvet
+                text:
+                theme_font_size: "Custom"
+                font_size: "15sp"
+                adaptive_height: True
+                padding: "10dp", "3dp", 0, 0
+        BoxLayout:
+            id: button_container
+            orientation: 'horizontal'
+            spacing: dp(10)
+
+            MDRaisedButton:
+                id: next_button
+                text: "Следующий вопрос"
+                on_release: root.next_question()
+                size_hint: (None, None)
+                height: dp(25)
+                md_bg_color: app.theme_cls.primary_color
+
+            MDRaisedButton:
+                id: back_button
+                text: "Назад"
+                on_release: root.last_question()
+                size_hint: (None, None)
+                height: dp(25)
+                md_bg_color: app.theme_cls.primary_color
+
+            MDRaisedButton:
+                id: end_button
+                text: "Закончить"
+                on_release: root.end()
+                size_hint: (None, None)
+                height: dp(25)
+                md_bg_color: app.theme_cls.primary_color

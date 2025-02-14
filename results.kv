@@ -1,0 +1,41 @@
+<ResultsScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: "5dp"
+        spacing: "5dp"
+
+        MDLabel:
+            theme_font_size: "Custom"
+            text: "Результаты теста:"
+            font_size: "30sp"
+            adaptive_height: True
+            padding: "10dp", "3dp", 0, 0
+
+        ScrollView:
+            size_hint: (1, 0.85)  # Занимает 80% высоты экрана
+            bar_width: dp(10)
+            effect_cls: "ScrollEffect"
+
+
+            MDLabel:
+                id: itog
+                text:
+                theme_font_size: "Custom"
+                font_size: "15sp"
+                adaptive_height: True
+                padding: "10dp", "3dp", 0, 0
+
+
+
+        BoxLayout:
+            size_hint: (1, None)
+            height: dp(50)
+            spacing: "10dp"
+
+            MDRaisedButton:
+                text: "Повторить тест"
+                on_release: root.replace()
+
+            MDRaisedButton:
+                text: "Закрыть"
+                on_release: root.close_app()
