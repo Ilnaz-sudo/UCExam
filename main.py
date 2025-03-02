@@ -8,7 +8,6 @@ import requests
 from kivymd.uix.list import OneLineListItem
 
 
-
 DATABASE_URL = "https://test6razryad-default-rtdb.europe-west1.firebasedatabase.app"
 
 val = 0
@@ -147,12 +146,10 @@ class QuizScreen(Screen):
             self.protvet = question_data["options"][selected_idx]
 
             if selected_idx == correct:
-                self.ids.otvet.text = f"{self.protvet}"
                 if question_data["text"] in results:
                     del results[question_data["text"]]
                 self.next_question()
             else:
-                self.ids.otvet.text = f"{self.protvet}"
                 results[question_data["text"]] = question_data
                 self.next_question()
             self.update()
@@ -176,76 +173,66 @@ class QuizScreen(Screen):
 class ResultsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def split_text(self, text, max_chars=20):
-        """Разбивает текст на строки, выравнивая влево"""
-        words = text.split()  # Разбиваем текст на слова
-        lines = []
-        current_line = ""
-        lines.append(68 * " ")
-        for word in words:
-            if len(current_line) + len(word) + 1 <= max_chars:
-
-                current_line += (" " if current_line else '') + word  # Добавляем пробел между словами
-            else:
-                lines.append(current_line)  # Добавляем текущую строку в список
-                current_line = word  # Начинаем новую строку с нового слова
-
-        if current_line:
-            lines.append(current_line)
-            lines.append(68*" ") # Добавляем последнюю строку
-
-        return "\n".join(lines)  # Объединяем строки с переносами
+        self.current_index = 0
+        self.errors = []  # Список ошибок
 
 
     def on_pre_enter(self, *args):
         """Этот метод срабатывает перед тем, как экран становится активным"""
         self.load_error()
+        self.show_error()
+
 
 
     def load_error(self):
+        global results
+        self.errors = list(results.items())  # Преобразуем словарь в список пар (вопрос, данные)
+        self.current_index = 0
 
+    def show_error(self):
+        """Отображает текущую ошибку"""
+        if not self.errors:
+            self.ids.itog.text = "Все правильно! Ошибок нет."
+            self.ids.prev_button.disabled = True
+            self.ids.next_button.disabled = True
+            return
 
-        global baza, results
-        baza = []  # Очистка базы данных
+        vopros, otvet = self.errors[self.current_index]
 
+        options = "\n\n".join([f"{i+1}. {option}" for i, option in enumerate(otvet["options"])])
+        correct_answer = otvet["options"][otvet["correct_index"]]
 
-        baza.append(f'{len(results)} ош. ')
+        error_text = f"{vopros}\n\n{options}\n"
+        true_text = f"Правильный ответ:\n{correct_answer}"
 
+        self.ids.itog.text = error_text
+        self.ids.true_text.text = true_text
+        self.ids.true_text.color = (0, 0.4, 1, 0.8)
 
-        for question_text, question_data in results.items():
+        self.ids.page_label.text = f"{self.current_index + 1} / {len(self.errors)}"
 
+        # Блокируем кнопки, если достигли начала или конца
+        self.ids.prev_button.disabled = (self.current_index == 0)
+        self.ids.next_button.disabled = (self.current_index == len(self.errors) - 1)
 
-            baza.append("")
-            baza.append(question_text)  # Текст вопроса
-            baza.append("")
+    def next_error(self):
+        """Переключается на следующую ошибку"""
+        if self.current_index < len(self.errors) - 1:
+            self.current_index += 1
+            self.show_error()
 
-            options = '\n'.join(question_data["options"])
-            baza.append(options)
-            baza.append("\n")
-
-            correct_answer = question_data["options"][question_data["correct_index"]]
-            baza.append(60 * "-")
-            baza.append("Правильный ответ: ")
-
-            baza.append(correct_answer)
-            baza.append(60 * "-")
-
-        variant_str = '\n'.join(str(item) for item in baza)
-
-        if len(results) > 0:
-            self.ids.itog.text = str(f'{variant_str}')
-        else:
-            self.ids.itog.text = str(f'Все правильно!')
+    def prev_error(self):
+        """Переключается на предыдущую ошибку"""
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.show_error()
 
     def replace(self):
         global results
         results={}
 
 
-    def close_app(self):
-        UceApp().stop()
-        UceApp().destroy_settings()
+
 
 
 class UceApp(MDApp):

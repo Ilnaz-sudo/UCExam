@@ -11,6 +11,13 @@
             adaptive_height: True
             padding: "10dp", "3dp", 0, 0
 
+        MDLabel:
+            id: page_label
+            theme_font_size: "Custom"
+            font_size: "30sp"
+            adaptive_height: True
+            padding: "10dp", "3dp", 0, 0
+
         ScrollView:
             size_hint: (1, 0.85)  # Занимает 80% высоты экрана
             bar_width: dp(10)
@@ -21,9 +28,17 @@
                 id: itog
                 text:
                 theme_font_size: "Custom"
-                font_size: "12sp"
+                font_size: "16sp"
                 adaptive_height: True
                 padding: "10dp", "3dp", 0, 0
+
+        MDLabel:
+            id: true_text
+            text:
+            theme_font_size: "Custom"
+            font_size: "16sp"
+            adaptive_height: True
+            padding: "10dp", "3dp", 0, 0
 
 
 
@@ -38,5 +53,12 @@
                 on_press: root.manager.current = 'quiz'
 
             MDRaisedButton:
-                text: "Закрыть"
-                on_release: root.close_app()
+                id: prev_button
+                text: "Назад"
+                on_release: root.prev_error()
+
+            MDRaisedButton:
+                id: next_button
+                text: "Вперед"
+                on_release: root.next_error()
+
