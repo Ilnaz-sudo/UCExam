@@ -192,6 +192,8 @@ class ResultsScreen(Screen):
     def show_error(self):
         """Отображает текущую ошибку"""
         if not self.errors:
+
+            self.ids.true_text.text = ""
             self.ids.itog.text = "Все правильно! Ошибок нет."
             self.ids.prev_button.disabled = True
             self.ids.next_button.disabled = True
