@@ -7,7 +7,7 @@ title = UCExam
 package.name = UCExam
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = https://github.com/Ilnaz-sudo/UCExam
 
 # (str) Source code where the main.py live
 source.dir = .
