@@ -1,95 +1,161 @@
-import array
+
 
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.app import MDApp
 from kivymd.uix.button import MDRaisedButton
-from kivy.uix.label import Label
-import os
-import numpy as np
-from kivy.uix.boxlayout import BoxLayout
-import pyrebase
-
-val=0
-results=[[]]
-dat = [[]]
-baza=[]
-c=0
-
-# Конфигурация Firebase
-firebase_config = {
-    "apiKey": "AIzaSyAnkNyaRi7Jn1HCCdTl0i4w3WHWGaVc6_M",
-    "authDomain": "test6razryad.firebaseapp.com",
-    "databaseURL": "https://test6razryad-default-rtdb.europe-west1.firebasedatabase.app/",
-    "storageBucket": "test6razryad.appspot.com"
+import requests
+from kivymd.uix.list import OneLineListItem
 
 
 
-}
+DATABASE_URL = "https://test6razryad-default-rtdb.europe-west1.firebasedatabase.app"
 
-firebase = pyrebase.initialize_app(firebase_config)
-db = firebase.database()
-
+val = 0
+dat = []
+for i in range(500):
+    dat.append("")
+baza = []
+results = {}
+c = 0
 Builder.load_file("quiz.kv")
-class QuizScreen(Screen):
+Builder.load_file("results.kv")
 
+def get_questions():
+    response = requests.get(f"{DATABASE_URL}/questions.json")
+    if response.status_code == 200:
+        data = response.json()
+        if isinstance(data, dict):  # Если пришел словарь, берем values()
+            return list(data.values())
+        elif isinstance(data, list):  # Если сразу список, возвращаем его
+            return data
+    return []  # Возвращаем пустой список, если данные некорректны
+
+class QuizScreen(Screen):
+    global results
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.load_questions()  # Загрузка вопросов при создании экрана
+        self.dynamic_widgets = {}
+    def on_pre_enter(self, *args):
+        """Этот метод срабатывает перед тем, как экран становится активным"""
+        self.load_questions()
+        self.update_question_list()
+
+
+
+
 
     def load_questions(self):
-        questions = db.child("questions").get()
-        if questions.each():
-            self.questions = [q.val() for q in questions.each()]
-        else:
-            self.questions = []
+        global question2
+        self.questions = get_questions()
+        self.answered = {}
         self.current_question = 0
+        self.answered = {i: False for i in range(len(self.questions))}  # Все вопросы неотвеченные
+        #self.update()  # Обновляем список номеров вопросов
         self.show_question()
+
+    def update(self):
+        i = str(self.current_question-1)
+        j = self.current_question - 1
+        color = (0, 0.4, 1, 0.8) if self.answered[j] else (0.5, 0.5, 0.5, 1)
+        self.dynamic_widgets[f"btn_{i}"].text_color = color
+
+
+    def update_question_list(self):
+        """Обновляет список вопросов справа, меняя цвета номеров"""
+        self.ids.question_list.clear_widgets()
+        for i in range(len(self.questions)):
+            color = (0, 0.4, 1, 0.8) if self.answered[i] else (0.5, 0.5, 0.5, 1)  # Зеленый или серый
+            btn = OneLineListItem(
+                text=f"{i+1}",
+                id = f"{i+1}",
+                theme_text_color="Custom",
+                text_color=color,
+                on_release=lambda instance, idx=i:self.go_to_question(idx)
+            )
+            self.ids.question_list.add_widget(btn)
+            self.dynamic_widgets[f"btn_{i}"] = btn
+
+    def split_text(self, text, max_chars=20):
+        """Разбивает текст на строки, выравнивая влево"""
+        words = text.split()  # Разбиваем текст на слова
+        lines = []
+        current_line = ""
+        lines.append(68 * " ")
+        for word in words:
+            if len(current_line) + len(word) + 1 <= max_chars:
+
+                current_line += (" " if current_line else '') + word  # Добавляем пробел между словами
+            else:
+                lines.append(current_line)  # Добавляем текущую строку в список
+                current_line = word  # Начинаем новую строку с нового слова
+
+        if current_line:
+            lines.append(current_line)
+            lines.append(68*" ") # Добавляем последнюю строку
+
+        return "\n".join(lines)  # Объединяем строки с переносами
 
     def show_question(self):
         global c
+        question = self.questions[self.current_question]
         if not self.questions:
             return
         c = len(self.questions)
-        question = self.questions[self.current_question]
+
         self.ids.question_label.text = question["text"]
-        self.ids.value.text = (f"{str(int(self.current_question)+1)}/{len(self.questions)}")
+        self.ids.value.text = f"{self.current_question + 1}/{len(self.questions)}"
         self.ids.options.clear_widgets()
+
+
+
+    # Логика создания кнопок:
         for i, option in enumerate(question["options"]):
+            formatted_text = self.split_text(option, max_chars=30)  # Разбиваем текст
+
+
+            # Создаем кнопку
             btn = MDRaisedButton(
-                text=option,
+                text = formatted_text,
                 md_bg_color="white",
-                text_color = "black",
+                text_color="black",
                 on_release=lambda _, idx=i: self.check_answer(idx)
+
+
+
             )
+
+
+            # Добавляем кнопку на экран
             self.ids.options.add_widget(btn)
 
-    def check_answer(self, selected_idx):
-        global results, val, dat
-        i = int(self.current_question)
-        correct = self.questions[self.current_question]["correct_index"]
-        dat=np.append(dat, self.questions[self.current_question])
-        val = np.where(np.array(results) == self.questions[self.current_question])
-        data = np.array(dat)
-        opt = np.array(data[i]["options"])
-        protvet = opt[[selected_idx]]
 
-        if selected_idx == correct:
-            self.ids.otvet.clear_widgets()
-            self.ids.otvet.text = (f"Вы ответили: {protvet[0]}  ")
-            try:
-                results = np.delete(results,val)
-            except:
-                pass
-            self.next_question()
-        else:
-            self.ids.otvet.clear_widgets()
-            self.ids.otvet.text = (f"Вы ответили: {protvet[0]}  ")
-            results = np.delete(results, val)
-            results = np.append(results, self.questions[self.current_question])
-            if (int(self.current_question)+1)!=len(self.questions):
-                self.ids.options.clear_widgets()
-            self.next_question()
+
+    def check_answer(self, selected_idx):
+        global val, dat, results
+        self.answered[self.current_question] = True
+        i = self.current_question
+        correct = self.questions[self.current_question]["correct_index"]
+        if not self.questions[self.current_question] in dat:
+            dat[i] = (self.questions[self.current_question])
+
+
+
+        question_data = dat[i]
+
+        if isinstance(question_data, dict):
+            self.protvet = question_data["options"][selected_idx]
+
+            if selected_idx == correct:
+                self.ids.otvet.text = f"{self.protvet}"
+                if question_data["text"] in results:
+                    del results[question_data["text"]]
+                self.next_question()
+            else:
+                self.ids.otvet.text = f"{self.protvet}"
+                results[question_data["text"]] = question_data
+                self.next_question()
+            self.update()
 
     def next_question(self):
         if self.current_question < len(self.questions) - 1:
@@ -97,68 +163,99 @@ class QuizScreen(Screen):
             self.show_question()
 
     def last_question(self):
-        if self.current_question >0:
+        if self.current_question > 0:
             self.current_question -= 1
             self.show_question()
 
-    def end(self):
-        self.clear_widgets()
-        QuizApp().stop()
-        QuizApp().destroy_settings()
-        ResultsApp().run()
+    def go_to_question(self, question_index):
+        """Переход к конкретному вопросу при нажатии на номер"""
+        self.current_question = question_index
+        self.show_question()
+
 
 class ResultsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def split_text(self, text, max_chars=20):
+        """Разбивает текст на строки, выравнивая влево"""
+        words = text.split()  # Разбиваем текст на слова
+        lines = []
+        current_line = ""
+        lines.append(68 * " ")
+        for word in words:
+            if len(current_line) + len(word) + 1 <= max_chars:
+
+                current_line += (" " if current_line else '') + word  # Добавляем пробел между словами
+            else:
+                lines.append(current_line)  # Добавляем текущую строку в список
+                current_line = word  # Начинаем новую строку с нового слова
+
+        if current_line:
+            lines.append(current_line)
+            lines.append(68*" ") # Добавляем последнюю строку
+
+        return "\n".join(lines)  # Объединяем строки с переносами
+
+
+    def on_pre_enter(self, *args):
+        """Этот метод срабатывает перед тем, как экран становится активным"""
         self.load_error()
 
-    def load_error(self):
-        global baza, results
-        baza = np.delete(baza, np.s_[0:])
-        data_array = np.array(results)
-        baza = np.append(baza, f'Правильно {c-len(results)} из {c} вопросов')
-        for i in range(len(results)):
-            baza = np.append(baza, "")
-            baza = np.append(baza, data_array[i]["text"])
-            baza = np.append(baza, "")
-            baza = np.append(baza, data_array[i]["options"])
-            baza = np.append(baza, "")
-            inf1 = data_array[i]["options"]
-            inf =  data_array[i]['correct_index']
-            baza = np.append(baza, "Правильный ответ: ")
-            baza = np.append(baza, inf1[int(inf)])
-            baza = np.append(baza, 15*"-")
 
-        variant_str = '\n'.join(baza)
-        if len(results)>0:
+    def load_error(self):
+
+
+        global baza, results
+        baza = []  # Очистка базы данных
+
+
+        baza.append(f'{len(results)} ош. ')
+
+
+        for question_text, question_data in results.items():
+
+
+            baza.append("")
+            baza.append(question_text)  # Текст вопроса
+            baza.append("")
+
+            options = '\n'.join(question_data["options"])
+            baza.append(options)
+            baza.append("\n")
+
+            correct_answer = question_data["options"][question_data["correct_index"]]
+            baza.append(60 * "-")
+            baza.append("Правильный ответ: ")
+
+            baza.append(correct_answer)
+            baza.append(60 * "-")
+
+        variant_str = '\n'.join(str(item) for item in baza)
+
+        if len(results) > 0:
             self.ids.itog.text = str(f'{variant_str}')
         else:
             self.ids.itog.text = str(f'Все правильно!')
 
     def replace(self):
-        self.clear_widgets()
-        ResultsApp().stop()
-        ResultsApp().destroy_settings()
-        QuizApp().run()
+        global results
+        results={}
+
 
     def close_app(self):
-        ResultsApp().stop()
-        ResultsApp().destroy_settings()
+        UceApp().stop()
+        UceApp().destroy_settings()
 
-class QuizApp(MDApp):
+
+class UceApp(MDApp):
     def build(self):
         sm = ScreenManager()
         sm.add_widget(QuizScreen(name="quiz"))
-        sm.current = "quiz"
+        sm.add_widget(ResultsScreen(name="results"))
         return sm
 
-class ResultsApp(MDApp):
-    def build(self):
-        sm = ScreenManager()
-        sm.add_widget(ResultsScreen(name="results"))
-        sm.current = "results"
-        return sm
+
 
 if __name__ == "__main__":
-    QuizApp().run()
-
+    UceApp().run()

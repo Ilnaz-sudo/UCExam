@@ -21,7 +21,7 @@
                 id: itog
                 text:
                 theme_font_size: "Custom"
-                font_size: "15sp"
+                font_size: "12sp"
                 adaptive_height: True
                 padding: "10dp", "3dp", 0, 0
 
@@ -35,6 +35,7 @@
             MDRaisedButton:
                 text: "Повторить тест"
                 on_release: root.replace()
+                on_press: root.manager.current = 'quiz'
 
             MDRaisedButton:
                 text: "Закрыть"
