@@ -3,15 +3,25 @@
     BoxLayout:
         orientation: "vertical"
         size_hint_x: 1 # Основная часть занимает 70% ширины
-
-        MDLabel:
-            id: value
-            text:
-            halign: "center"
-            font_style: "H5"
-            theme_text_color: "Primary"
+        BoxLayout:
+            orientation: "horizontal"
+            spacing: dp(0)
+            padding: dp(0)
             size_hint_y: None
-            height: self.texture_size[1] + dp(1)  # Динамическая высота
+            MDLabel:
+                id: value
+                text:
+                halign: "center"
+                font_style: "H5"
+                theme_text_color: "Primary"
+                size_hint_y: None
+                height: self.texture_size[1] + dp(1)  # Динамическая высота
+            MDIconButton:
+                icon: "cog"
+                on_press:root.manager.current = 'setting'
+                size_hint: None, None
+                size: dp(48), dp(48)
+
 
 
         # Заголовок вопроса (MDLabel)
@@ -80,7 +90,9 @@
             MDRaisedButton:
                 id: end_button
                 text: "Закончить"
-                on_press:root.manager.current = 'results'
+                on_press:
+                    root.manager.current = 'results'
+                    root.manager.transition.direction = "left"
                 size_hint: (1, None)
                 width: root.width / 3  # делим ширину экрана на 3
                 md_bg_color: app.theme_cls.primary_color

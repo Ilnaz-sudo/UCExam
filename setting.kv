@@ -1,0 +1,67 @@
+<SettingScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        spacing: dp(10)
+        padding: dp(10)
+        size_hint: 1, 1
+        MDTextField:
+            id: question_count_input
+            halign: "left"
+            spacing: dp(0)
+            padding: dp(0)
+            width: 70
+            hint_text:f"Количество вопросов (max: {root.len_quensions()})"
+            text: root.len_quensions()
+            input_filter: "int"  # Разрешаем вводить только цифры
+            size_hint_x: 0.1
+
+        BoxLayout:
+            orientation: "horizontal"
+            spacing: dp(10)
+            size_hint: 1, 0.01
+            MDCheckbox:
+                id: shuffle_questions
+                size_hint: 0.1, 1
+                haling: "left"
+                on_active:root.toggle_shuffle(self.active)
+            MDLabel:
+                text: "Выбрать все вопросы"
+                size_hint: 0.8, 1
+                theme_font_size: "Custom"
+                font_size: "14sp"
+                halign: "left"
+        BoxLayout:
+            orientation: "horizontal"
+            spacing: dp(10)
+            size_hint: 1, 0.1
+            MDCheckbox:
+                id: shuffle_questions2
+                size_hint: 0.1, 1
+                haling: "left"
+                on_active:root.toggle_shuffle2(self.active)
+            MDLabel:
+                text: "Перемешивать вопросы"
+                size_hint: 0.8, 1
+                theme_font_size: "Custom"
+                font_size: "14sp"
+                halign: "left"
+
+
+        BoxLayout:
+            orientation: "horizontal"
+            spacing: dp(10)
+            size_hint: 1, 0.3
+
+
+
+
+
+
+            MDRaisedButton:
+                text: "Сохранить"
+                id: push
+                on_press: root.count_question(question_count_input.text)
+                size_hint_y: None
+                height: dp(50)
+                size_hint: (1, None)
+                width: root.width / 2  # делим ширину экрана на 3

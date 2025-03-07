@@ -50,7 +50,9 @@
             MDRaisedButton:
                 text: "Повторить тест"
                 on_release: root.replace()
-                on_press: root.manager.current = 'quiz'
+                on_press:
+                    root.manager.current = 'quiz'
+                    root.manager.transition.direction = "right"
 
             MDRaisedButton:
                 id: prev_button
