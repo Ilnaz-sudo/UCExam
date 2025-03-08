@@ -13,7 +13,7 @@ package.domain = https://github.com/Ilnaz-sudo/UCExam
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,kv
+source.include_exts = py,kv,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png

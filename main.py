@@ -23,6 +23,7 @@ for i in range(500):
 baza = []
 results = {}
 c = 0
+question_count_G = 0
 Builder.load_file("quiz.kv")
 Builder.load_file("results.kv")
 Builder.load_file("setting.kv")
@@ -51,11 +52,13 @@ class QuizScreen(Screen):
 
 
     def load_settings(self):
+        global question_count_G
         """Загружаем настройки из JSON"""
         if os.path.exists("setting.json"):
             with open("setting.json", "r") as f:
                 data = json.load(f)
                 self.question_count = data.get("question_load" )
+                question_count_G = data.get("question_load")
                 self.bool2 = data.get("bool2")
 
 
@@ -83,10 +86,18 @@ class QuizScreen(Screen):
 
 
     def update(self):
+
         i = str(self.current_question-1)
         j = self.current_question - 1
+
+
         color = (0, 0.4, 1, 0.8) if self.answered[j] else (0.5, 0.5, 0.5, 1)
         self.dynamic_widgets[f"btn_{i}"].text_color = color
+        if(self.current_question - 1)==int(self.question_count)-2:
+            i=str(self.current_question)
+            j=self.current_question
+            color = (0, 0.4, 1, 0.8) if self.answered[j] else (0.5, 0.5, 0.5, 1)
+            self.dynamic_widgets[f"btn_{i}"].text_color = color
 
 
     def update_question_list(self):
@@ -280,7 +291,6 @@ class ResultsScreen(Screen):
 class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
     def on_pre_enter(self, *args):
         self.load_settings()
         self.fl()
@@ -308,14 +318,20 @@ class SettingScreen(Screen):
                 data = json.load(f)
                 self.question_count = data.get("bool " )
                 self.question_count2 = data.get("bool2" )
+                self.question_count3 = data.get("question_load")
 
 
-                print(self.question_count)
+
+                print(self.question_count3)
 
     def len_quensions(self):
         global c
         self.lens = c
         return str(self.lens)
+
+    def len_quensions2(self):
+        count = question_count_G
+        return str(count)
 
     def json_save(self):
         data = {
@@ -351,8 +367,8 @@ class SettingScreen(Screen):
         if self.shuffle_questions == False:
             if int(self.c) <= int(self.len_quensions()):
                 self.text_j = self.c
-        else:
-            self.text_j = self.len_quensions()
+            else:
+                 self.text_j = self.len_quensions()
 
         self.json_save()
         self.manager.transition = SlideTransition(direction="right")
