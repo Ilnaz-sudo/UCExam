@@ -1,7 +1,6 @@
 import random
 
 from kivy.lang import Builder
-from kivy.properties import NumericProperty, BooleanProperty
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivymd.app import MDApp
 from kivymd.uix.button import MDRaisedButton
@@ -9,8 +8,6 @@ import requests
 from kivymd.uix.list import OneLineListItem
 import json
 import os
-from kivy.uix.image import Image
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.app import App
 
 
@@ -40,9 +37,14 @@ def get_questions():
 
 class QuizScreen(Screen):
     global results
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.dynamic_widgets = {}
+        self.settings_path = os.path.join(App.get_running_app().user_data_dir, "setting.json")
+        if not os.path.exists(self.settings_path):
+            self.setting_save({"question_load": "10", "bool ": True, "bool2": True})
+        print(f"Файл настроек сохранится по пути: {self.settings_path}")
     def on_pre_enter(self, *args):
         """Этот метод срабатывает перед тем, как экран становится активным"""
         self.load_settings()
@@ -50,16 +52,24 @@ class QuizScreen(Screen):
         self.update_question_list()
         self.show_question()
 
+    def setting_save(self, data=None):
+
+        with open(self.settings_path, "w") as f:
+            json.dump(data, f, indent=4)
 
     def load_settings(self):
         global question_count_G
         """Загружаем настройки из JSON"""
-        if os.path.exists("setting.json"):
-            with open("setting.json", "r") as f:
+        if os.path.exists(self.settings_path):
+            with open(self.settings_path, "r") as f:
                 data = json.load(f)
                 self.question_count = data.get("question_load" )
                 question_count_G = data.get("question_load")
                 self.bool2 = data.get("bool2")
+
+            # Если файла нет, создаем его с дефолтными значениями
+
+
 
 
 
@@ -291,6 +301,7 @@ class ResultsScreen(Screen):
 class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.settings_path = os.path.join(App.get_running_app().user_data_dir, "setting.json")
     def on_pre_enter(self, *args):
         self.load_settings()
         self.fl()
@@ -300,11 +311,11 @@ class SettingScreen(Screen):
 
 
     def fl(self):
-        if self.question_count == "True":
+        if self.question_count == True or self.question_count == "true" :
             self.shuffle_questions = True
         else:
             self.shuffle_questions = False
-        if self.question_count2 == "True":
+        if self.question_count2 == True or self.question_count2 == "true":
             self.shuffle_questions2 = True
         else:
             self.shuffle_questions2 = False
@@ -313,16 +324,16 @@ class SettingScreen(Screen):
     def load_settings(self):
         """Загружаем настройки из JSON"""
 
-        if os.path.exists("setting.json"):
-            with open("setting.json", "r") as f:
+        if os.path.exists(self.settings_path):
+            with open(self.settings_path, "r") as f:
                 data = json.load(f)
-                self.question_count = data.get("bool " )
-                self.question_count2 = data.get("bool2" )
+                self.question_count = data.get("bool ", True )
+                self.question_count2 = data.get("bool2", True )
                 self.question_count3 = data.get("question_load")
+        else:
+        # Если файла нет, создаем его с дефолтными значениями
+             self.json_save({"bool ": True, "bool2": True, "question_load": "10"})
 
-
-
-                print(self.question_count3)
 
     def len_quensions(self):
         global c
@@ -333,13 +344,14 @@ class SettingScreen(Screen):
         count = question_count_G
         return str(count)
 
-    def json_save(self):
-        data = {
-            "question_load": f"{self.text_j}",
-            "bool ": f"{self.shuffle_questions}",
-            "bool2": f"{self.shuffle_questions2}"
-        }
-        with open("setting.json", "w") as f:
+    def json_save(self, data=None):
+        if data is None:
+            data = {
+                "question_load": f"{self.text_j}",
+                "bool ": f"{self.shuffle_questions}",
+                "bool2": f"{self.shuffle_questions2}"
+            }
+        with open(self.settings_path, "w") as f:
             json.dump(data, f, indent=4)
 
 
